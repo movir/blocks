@@ -35,11 +35,13 @@ class Plate extends Component {
     constructor(){
         super();
         this.state = {
-            blocks:[
-                {id: 'block1', top: '10%', left: '10%'},
-                {id: 'block2', top: '20%', left: '30%'}
-            ],
-            links: [],
+            blockIds: ['block1', "block2"],
+            blocks: {
+                block1: {id: 'block1', top: '10%', left: '10%'},
+                block2: {id: 'block2', top: '20%', left: '30%'}
+            },
+            linkIds: [],
+            links: {},
             linking: null
         };
 
@@ -49,9 +51,9 @@ class Plate extends Component {
         this.startLinking = this.startLinking.bind(this);
         this.endLinking = this.endLinking.bind(this);
     }
-    linkIt(block){
+    linkIt(blockId){
+        const block = this.state.blocks[blockId];
         return (e) => {
-            console.log({block}); // IgrEd
             const {offsetHeight, offsetWidth, offsetTop, offsetLeft} = e.target;
 
             if (this.linking ===  null){
@@ -62,8 +64,7 @@ class Plate extends Component {
         }
     }
     clearLinking(event){
-        console.log('Clear Linking'); // IgrEd
-        (event && event.keyCode === 27) && console.log('\t', 'clear by Esc'); // IgrEd
+        (event && event.keyCode === 27) && console.log('\t', 'clear by Esc');
 
         if(!event || event.keyCode === 27) {
             this.linking = null;
@@ -71,19 +72,22 @@ class Plate extends Component {
         }
     }
     startLinking(block, offset){
-        console.log('start linking'); // IgrEd
         document.addEventListener("keydown", this.clearLinking, false);
         this.linking = {
             start: {id: block.id, ...offset}
         }
     }
     endLinking(block, offset){
-        console.log('end linking'); // IgrEd
-        //ToDo prevent self Linking
         this.linking['end'] = {id: block.id, ...offset};
 
         const {start, end} = this.linking;
-        const {links} = this.state;
+        const {linkIds} = this.state;
+
+        //prevent self Linking
+        if (block.id === start.id) return this.clearLinking();
+
+        //prevent duplicating
+        if (linkIds.find(linkId=>linkId===`${start.id}-${end.id}`)) return this.clearLinking();
 
         const getCenter = (offsets) => [
             offsets.offsetLeft + offsets.offsetWidth/2,
@@ -91,21 +95,44 @@ class Plate extends Component {
         ];
 
         const line = this.calcLine(getCenter(start), getCenter(end));
-        const newLink =  {
+
+        this.addLink({
             id: `${start.id}-${end.id}`,
+            start: start.id,
+            end: end.id,
             top: line.y1,
             left: line.x1,
             width: line.width,
             rotate: line.angle
-        };
-
-        this.setState({links: [...links, newLink]});
+        });
         this.clearLinking();
     }
-    calcLine([x1, y1], [x2, y2]){
+    render() {
+        const {blockIds, blocks, linkIds, links} = this.state;
+        return (
+            <PlateArea>
+                {blockIds.map(blockId => (
+                    <BlockItem {...blocks[blockId]} key={blockId} onClick={this.linkIt(blockId)} />
+                ))}
+                {console.log(links) // IgrEd
+                }
+                {linkIds.map(linkId => (
+                    <LinkItem key={linkId} {...links[linkId]} />
+                ))}
+
+            </PlateArea>
+        );
+    }
+    addLink(newLink) {
+        this.setState({
+            linkIds: [...this.state.linkIds, newLink.id],
+            links: {...this.state.links, [newLink.id]: newLink}
+        })
+    }
+    calcLine = ([x1, y1], [x2, y2]) => {
         const x = Math.abs(x2 - x1);
         const y = Math.abs(y2 - y1);
-        const width = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+        const width = Math.sqrt(x**2 + y**2);
         let  angle = Math.acos(x/width);
         if (y2 < y1) {
             angle = - angle;
@@ -114,23 +141,12 @@ class Plate extends Component {
         if (x2 < x1 ) {
             angle = Math.PI - angle;
         }
+
         return {
             x1, y1, x2, y2, width, angle
         }
-    }
-    render() {
-        return (
-            <PlateArea>
-                {this.state.blocks.map(block => (
-                    <BlockItem {...block} key={block.id} onClick={this.linkIt(block)} />
-                ))}
-                {this.state.links.map(link => (
-                    <LinkItem key={link.id} {...link} />
-                ))}
+    };
 
-            </PlateArea>
-        );
-    }
 }
 
 export default Plate;
