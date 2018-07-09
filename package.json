@@ -4,10 +4,11 @@
   "private": true,
   "dependencies": {
     "react": "^16.4.1",
+    "react-dnd": "^2.5.4",
+    "react-dnd-html5-backend": "^2.5.4",
     "react-dom": "^16.4.1",
     "react-scripts": "1.1.4",
-    "react-dnd": "^2.5.4",
-    "react-dnd-html5-backend": "^2.5.4"
+    "styled-components": "^3.3.3"
   },
   "scripts": {
     "start": "react-scripts start",
