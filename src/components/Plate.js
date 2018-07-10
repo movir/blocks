@@ -1,10 +1,14 @@
 import React, { Component } from "react";
+import { findDOMNode } from "react-dom";
+import PropTypes from "prop-types";
 import styled from "styled-components";
 import DragDropPlace from "./drag-n-drop";
+import { DragSource, DropTarget } from "react-dnd";
 
 import BlockItem from "./Block";
 import LinkItem from "./Link";
 
+import { BLOCK_TYPE } from "./constants";
 
 const PlateArea = styled("div")`
   width: 80%;
@@ -20,8 +24,8 @@ class Plate extends Component {
     this.state = {
       blockIds: ["block1", "block2"],
       blocks: {
-        block1: { id: "block1", top: "10%", left: "10%" },
-        block2: { id: "block2", top: "20%", left: "30%" }
+        block1: { id: "block1", top: 30, left: 30, width: 40, height: 35 },
+        block2: { id: "block2", top: 150, left: 460, width: 40, height: 35 }
       },
       linkIds: [],
       links: {},
@@ -33,26 +37,14 @@ class Plate extends Component {
     this.linkIt = this.linkIt.bind(this);
     this.startLinking = this.startLinking.bind(this);
     this.endLinking = this.endLinking.bind(this);
+    this.updateBlockPosition = this.updateBlockPosition.bind(this);
   }
   linkIt(blockId) {
-    const block = this.state.blocks[blockId];
-    return e => {
-      const { offsetHeight, offsetWidth, offsetTop, offsetLeft } = e.target;
-
+    return () => {
       if (this.linking === null) {
-        this.startLinking(block, {
-          offsetHeight,
-          offsetWidth,
-          offsetTop,
-          offsetLeft
-        });
+        this.startLinking(blockId);
       } else {
-        this.endLinking(block, {
-          offsetHeight,
-          offsetWidth,
-          offsetTop,
-          offsetLeft
-        });
+        this.endLinking(blockId);
       }
     };
   }
@@ -64,40 +56,32 @@ class Plate extends Component {
       document.removeEventListener("keydown", this.clearLinking, false);
     }
   }
-  startLinking(block, offset) {
+  startLinking(blockId) {
     document.addEventListener("keydown", this.clearLinking, false);
     this.linking = {
-      start: { id: block.id, ...offset }
+      start: { id: blockId }
     };
   }
-  endLinking(block, offset) {
-    this.linking["end"] = { id: block.id, ...offset };
+  endLinking(blockId) {
+    this.linking["end"] = { id: blockId };
 
-    const { start, end } = this.linking;
+    const {
+      start: { id: startId },
+      end: { id: endId }
+    } = this.linking;
     const { linkIds } = this.state;
 
     //prevent self Linking
-    if (block.id === start.id) return this.clearLinking();
+    if (endId === startId) return this.clearLinking();
 
     //prevent duplicating
-    if (linkIds.find(linkId => linkId === `${start.id}-${end.id}`))
+    if (linkIds.find(linkId => linkId === `${startId}-${endId}`))
       return this.clearLinking();
 
-    const getCenter = offsets => [
-      offsets.offsetLeft + offsets.offsetWidth / 2,
-      offsets.offsetTop + offsets.offsetHeight / 2
-    ];
-
-    const line = this.calcLine(getCenter(start), getCenter(end));
-
     this.addLink({
-      id: `${start.id}-${end.id}`,
-      start: start.id,
-      end: end.id,
-      top: line.y1,
-      left: line.x1,
-      width: line.width,
-      rotate: line.angle
+      id: `${startId}-${endId}`,
+      startId,
+      endId
     });
     this.clearLinking();
   }
@@ -113,40 +97,73 @@ class Plate extends Component {
               onClick={this.linkIt(blockId)}
             />
           ))}
-          {linkIds.map(linkId => <LinkItem key={linkId} {...links[linkId]} />)}
+          {linkIds.map(linkId => (
+            <LinkItem
+              key={linkId}
+              linkItem={links[linkId]}
+              start={blocks[links[linkId].startId]}
+              end={blocks[links[linkId].endId]}
+            />
+          ))}
+          <ConnectedDropField updateBlockPosition={this.updateBlockPosition} />
         </PlateArea>
       </DragDropPlace>
     );
   }
+  updateBlockPosition(id, positionParams) {
+    const blocks = this.state.blocks;
+    const block = { ...blocks[id], ...positionParams };
 
+    this.setState({ blocks: { ...blocks, [id]: block } });
+  }
   addLink(newLink) {
     this.setState({
       linkIds: [...this.state.linkIds, newLink.id],
       links: { ...this.state.links, [newLink.id]: newLink }
     });
   }
-  calcLine = ([x1, y1], [x2, y2]) => {
-    const x = Math.abs(x2 - x1);
-    const y = Math.abs(y2 - y1);
-    const width = Math.sqrt(x ** 2 + y ** 2);
-    let angle = Math.acos(x / width);
-    if (y2 < y1) {
-      angle = -angle;
-    }
-
-    if (x2 < x1) {
-      angle = Math.PI - angle;
-    }
-
-    return {
-      x1,
-      y1,
-      x2,
-      y2,
-      width,
-      angle
-    };
-  };
 }
 
+const plateTarget = {
+  hover(props, monitor, component) {
+    const draggedItem = monitor.getItem();
+    const { x: dX = 0, y: dY = 0 } =
+      monitor.getDifferenceFromInitialOffset() || {};
+    props.updateBlockPosition(draggedItem.id, {
+      top: draggedItem.top + dY,
+      left: draggedItem.left + dX
+    });
+  },
+  drop(props, monitor, component) {
+    const draggedItem = monitor.getItem();
+    const { x: dX = 0, y: dY = 0 } =
+      monitor.getDifferenceFromInitialOffset() || {};
+    props.updateBlockPosition(draggedItem.id, {
+      top: draggedItem.top + dY,
+      left: draggedItem.left + dX
+    });
+  }
+};
 export default Plate;
+
+const DropField = ({ connectDropTarget, ...props }) =>
+  connectDropTarget(
+    <div
+      style={{
+        position: "absolute",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+      }}
+    />
+  );
+const ConnectedDropField = DropTarget(
+  BLOCK_TYPE,
+  plateTarget,
+  (connect, monitor) => ({
+    connectDropTarget: connect.dropTarget(),
+    canDrop: monitor.canDrop(),
+    isOver: monitor.isOver()
+  })
+)(DropField);

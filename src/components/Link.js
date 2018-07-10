@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { PureComponent } from "react";
 import styled from "styled-components";
 
 const LinkItem = styled("div")`
@@ -13,13 +13,48 @@ const LinkItem = styled("div")`
   z-index: 5;
 `;
 
+class Link extends PureComponent {
+  render() {
+    const { start, end, linkItem } = this.props;
 
-class Link extends Component {
-    render() {
-        return (
-            <LinkItem {...this.props}/>
-        );
+    const line = this.calcLine(this.getCenter(start), this.getCenter(end));
+
+    const lineParams = {
+      top: line.y1,
+      left: line.x1,
+      width: line.width,
+      rotate: line.angle
+    };
+
+    return <LinkItem id={linkItem.id} {...lineParams} />;
+  }
+  getCenter = ({top, left, width, height}) => [
+      +left + width / 2,
+      +top + height / 2
+  ];
+
+  calcLine = ([x1, y1], [x2, y2]) => {
+    const x = Math.abs(x2 - x1);
+    const y = Math.abs(y2 - y1);
+    const width = Math.sqrt(x ** 2 + y ** 2);
+    let angle = Math.acos(x / width);
+    if (y2 < y1) {
+      angle = -angle;
     }
+
+    if (x2 < x1) {
+      angle = Math.PI - angle;
+    }
+
+    return {
+      x1,
+      y1,
+      x2,
+      y2,
+      width,
+      angle
+    };
+  };
 }
 Link.propTypes = {};
 
