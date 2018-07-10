@@ -22,10 +22,11 @@ class Plate extends Component {
     constructor() {
         super();
         this.state = {
-            blockIds: ['block1', 'block2'],
+            blockIds: ['block1', 'block2', 'block3'],
             blocks: {
-                block1: { id: 'block1', top: 30, left: 30, width: 40, height: 35 },
-                block2: { id: 'block2', top: 150, left: 460, width: 40, height: 35 }
+                block1: { id: 'block1', top: 30, left: 30, width: 50, height: 50 },
+                block2: { id: 'block2', top: 150, left: 460, width: 50, height: 50 },
+                block3: { id: 'block3', top: 200, left: 150, width: 50, height: 50 },
             },
             linkIds: [],
             links: {},
