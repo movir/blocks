@@ -5,21 +5,24 @@ import { DragSource, DropTarget } from "react-dnd";
 
 import { BLOCK_TYPE } from "./constants";
 
-const BlockItem = styled("div")`
-  position: absolute;
-  width: ${({ width }) => width || 30}px;
-  height: ${({ height }) => height || 30}px;
-  top: ${({ top }) => top || 0}px;
-  left: ${({ left }) => left || 0}px;
-  cursor: pointer;
-  z-index: 10;
-`;
+const BlockItem = styled("div")``;
 
 class Block extends Component {
   render() {
     const { connectDragSource, isDragging, ...props } = this.props;
     return (
-      <BlockItem {...props}>
+      <div
+        style={{
+          position: "absolute",
+          width: `${props.width || 30}px`,
+          height: `${props.height || 30}px`,
+          top: `${props.top || 0}px`,
+          left: `${props.left || 0}px`,
+          cursor: "pointer",
+          zIndex: 10
+        }}
+        onClick={props.onClick}
+      >
         {connectDragSource(
           <div
             style={{
@@ -38,7 +41,7 @@ class Block extends Component {
             <span style={{ cursor: "move" }}>X</span>
           </div>
         )}
-      </BlockItem>
+      </div>
     );
   }
 }

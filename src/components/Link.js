@@ -26,11 +26,27 @@ class Link extends PureComponent {
       rotate: line.angle
     };
 
-    return <LinkItem id={linkItem.id} {...lineParams} />;
+    return (
+      <div
+        style={{
+          position: "absolute",
+          height: "1px",
+          transformOrigin: 0,
+          background: "black",
+          top: `${lineParams.top || 0}px`,
+          left: `${lineParams.left || 0}px`,
+          width: `${lineParams.width || 0}px`,
+          transform: `rotate(${lineParams.rotate || 0}rad)`,
+          zIndex: 5
+        }}
+        id={linkItem.id}
+        {...lineParams}
+      />
+    );
   }
-  getCenter = ({top, left, width, height}) => [
-      +left + width / 2,
-      +top + height / 2
+  getCenter = ({ top, left, width, height }) => [
+    +left + width / 2,
+    +top + height / 2
   ];
 
   calcLine = ([x1, y1], [x2, y2]) => {
