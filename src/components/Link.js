@@ -27,11 +27,11 @@ class Link extends PureComponent {
         this.removeLink = this.removeLink.bind(this);
     }
 
-    removeLink(linkId) {
-        return () => this.props.rmLink(linkId);
+    removeLink() {
+        this.props.rmLinks(this.props.linkId);
     }
     render() {
-        const { start, end, linkItem } = this.props;
+        const { start, end, linkItem, linkId } = this.props;
 
         const line = this.calcLine(this.getCenter(start), this.getCenter(end));
 
@@ -44,7 +44,7 @@ class Link extends PureComponent {
 
         return (
             <LinkItem
-                id={linkItem.id}
+                id={linkId}
                 style={{
                     top: `${lineParams.top || 0}px`,
                     left: `${lineParams.left || 0}px`,
@@ -52,7 +52,7 @@ class Link extends PureComponent {
                     transform: `rotate(${lineParams.rotate || 0}rad)`,
                 }}
             >
-                <DelButton onClick={this.removeLink(linkItem.id)}>X</DelButton>
+                <DelButton onClick={this.removeLink}>X</DelButton>
             </LinkItem>
         );
     }

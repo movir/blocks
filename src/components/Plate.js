@@ -22,11 +22,11 @@ class Plate extends Component {
     constructor() {
         super();
         this.state = {
-            blockIds: ['block1', 'block2', 'block3'],
+            blockIds: ['b1', 'b2', 'b3'],
             blocks: {
-                block1: { id: 'block1', top: 30, left: 30, width: 50, height: 50 },
-                block2: { id: 'block2', top: 150, left: 460, width: 50, height: 50 },
-                block3: { id: 'block3', top: 200, left: 150, width: 50, height: 50 },
+                b1: { id: 'b1', top: 30, left: 30, width: 50, height: 50 },
+                b2: { id: 'b2', top: 150, left: 460, width: 50, height: 50 },
+                b3: { id: 'b3', top: 200, left: 150, width: 50, height: 50 },
             },
             linkIds: [],
             links: {},
@@ -39,17 +39,16 @@ class Plate extends Component {
         this.startLinking = this.startLinking.bind(this);
         this.endLinking = this.endLinking.bind(this);
         this.updateBlockPosition = this.updateBlockPosition.bind(this);
-        this.rmLink = this.rmLink.bind(this);
+        this.rmLinks = this.rmLinks.bind(this);
+        this.clearLinking = this.clearLinking.bind(this);
         this.rmBlock = this.rmBlock.bind(this);
     }
     linkIt(blockId) {
-        return () => {
-            if (this.linking === null) {
-                this.startLinking(blockId);
-            } else {
-                this.endLinking(blockId);
-            }
-        };
+        if (this.linking === null) {
+            this.startLinking(blockId);
+        } else {
+            this.endLinking(blockId);
+        }
     }
     clearLinking(event) {
         event && event.keyCode === 27 && console.log('\t', 'clear by Esc');
@@ -68,10 +67,7 @@ class Plate extends Component {
     endLinking(blockId) {
         this.linking['end'] = { id: blockId };
 
-        const {
-            start: { id: startId },
-            end: { id: endId },
-        } = this.linking;
+        const { start: { id: startId }, end: { id: endId } } = this.linking;
         const { linkIds } = this.state;
 
         //prevent self Linking
@@ -89,6 +85,8 @@ class Plate extends Component {
     }
     render() {
         const { blockIds, blocks, linkIds, links } = this.state;
+        console.log('Plate Render', this.state); // IgrEd
+
         return (
             <DragDropPlace>
                 <PlateArea>
@@ -96,17 +94,19 @@ class Plate extends Component {
                         <BlockItem
                             {...blocks[blockId]}
                             key={blockId}
-                            onClick={this.linkIt(blockId)}
+                            blockId={blockId}
+                            linkIt={this.linkIt}
                             rmBlock={this.rmBlock}
                         />
                     ))}
                     {linkIds.map(linkId => (
                         <LinkItem
                             key={linkId}
+                            linkId={linkId}
                             linkItem={links[linkId]}
                             start={blocks[links[linkId].startId]}
                             end={blocks[links[linkId].endId]}
-                            rmLink={this.rmLink}
+                            rmLinks={this.rmLinks}
                         />
                     ))}
                     <ConnectedDropField updateBlockPosition={this.updateBlockPosition} />
@@ -115,6 +115,8 @@ class Plate extends Component {
         );
     }
     updateBlockPosition(id, positionParams) {
+        console.log('updaProp', id, positionParams) // IgrEd
+
         const blocks = this.state.blocks;
         const block = { ...blocks[id], ...positionParams };
 
@@ -126,30 +128,27 @@ class Plate extends Component {
             links: { ...this.state.links, [newLink.id]: newLink },
         });
     }
-    rmLink(linkId) {
-        const links = { ...this.state.links };
-        delete links[linkId];
+    rmLinks(ids) {
+        ids = [].concat(ids);
+        const { linkIds: _linkIds, links: _links } = this.state;
 
-        this.setState({
-            linkIds: this.state.linkIds.filter(_linkId => _linkId !== linkId),
-            links,
-        });
+        const linkIds = _linkIds.filter(linkId => !ids.includes(linkId));
+        const links = linkIds.reduce((links, linkId) => Object.assign(links, { [linkId]: _links[linkId] }), {});
+
+        this.setState({ linkIds, links });
     }
     rmBlock(blockId) {
-        console.log('rmBlock') // IgrEd
+        const { blocks: _blocks, blockIds: _blockIds, links: _links, linkIds: _linkIds } = this.state;
 
-        const blocks = { ...this.state.blocks };
-        const links = this.state.links;
-        delete blocks[blockId];
+        const blockIds = _blockIds.filter(_blockId => _blockId !== blockId);
+        const blocks = blockIds.reduce((blocks, blockId) => Object.assign(blocks, { [blockId]: _blocks[blockId] }), {});
 
-        this.state.linkIds.filter(
-            linkId => links[linkId].startId === blockId || links[linkId].endId === blockId
-        ).forEach(this.rmLink);
+        const LinksToBeDelted = _linkIds.filter(
+            linkId => _links[linkId].startId === blockId || _links[linkId].endId === blockId
+        );
+        this.rmLinks(LinksToBeDelted);
 
-        this.setState({
-            blockIds: this.state.blockIds.filter(_blockId => _blockId !== blockId),
-            blocks,
-        });
+        this.setState({ blockIds, blocks });
     }
 }
 

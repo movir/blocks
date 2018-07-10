@@ -33,11 +33,15 @@ class Block extends PureComponent {
     constructor(props) {
         super(props);
         this.deleteBlock = this.deleteBlock.bind(this);
+        this.blockLink = this.blockLink.bind(this);
     }
-    deleteBlock () {
+    deleteBlock(e) {
+        e.stopPropagation();
         this.props.rmBlock(this.props.id);
     }
-
+    blockLink() {
+        this.props.linkIt(this.props.id);
+    }
     calcDeletePosition() {
         const r = this.props.width / 2;
         const width = 10;
@@ -61,7 +65,7 @@ class Block extends PureComponent {
                     top: `${props.top || 0}px`,
                     left: `${props.left || 0}px`,
                 }}
-                onClick={props.onClick}
+                onClick={this.blockLink}
             >
                 <div
                     style={{
@@ -73,9 +77,6 @@ class Block extends PureComponent {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        // border: '1px solid',
-                        // background: 'white',
-                        // borderRadius: '50%',
                     }}
                 >
                     {connectDragSource(<span style={{ cursor: 'move' }}>☰</span>)}
