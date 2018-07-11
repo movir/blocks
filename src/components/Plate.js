@@ -30,7 +30,7 @@ class Plate extends Component {
             },
             linkIds: [],
             links: {},
-            linking: null
+            linking: null,
         };
 
         this.linking = null;
@@ -40,6 +40,7 @@ class Plate extends Component {
         this.endLinking = this.endLinking.bind(this);
         this.updateBlockPosition = this.updateBlockPosition.bind(this);
         this.rmLink = this.rmLink.bind(this);
+        this.rmBlock = this.rmBlock.bind(this);
     }
     linkIt(blockId) {
         return () => {
@@ -61,13 +62,16 @@ class Plate extends Component {
     startLinking(blockId) {
         document.addEventListener('keydown', this.clearLinking, false);
         this.linking = {
-            start: { id: blockId }
+            start: { id: blockId },
         };
     }
     endLinking(blockId) {
         this.linking['end'] = { id: blockId };
 
-        const { start: { id: startId }, end: { id: endId } } = this.linking;
+        const {
+            start: { id: startId },
+            end: { id: endId },
+        } = this.linking;
         const { linkIds } = this.state;
 
         //prevent self Linking
@@ -79,7 +83,7 @@ class Plate extends Component {
         this.addLink({
             id: `${startId}-${endId}`,
             startId,
-            endId
+            endId,
         });
         this.clearLinking();
     }
@@ -89,7 +93,12 @@ class Plate extends Component {
             <DragDropPlace>
                 <PlateArea>
                     {blockIds.map(blockId => (
-                        <BlockItem {...blocks[blockId]} key={blockId} onClick={this.linkIt(blockId)} />
+                        <BlockItem
+                            {...blocks[blockId]}
+                            key={blockId}
+                            onClick={this.linkIt(blockId)}
+                            rmBlock={this.rmBlock}
+                        />
                     ))}
                     {linkIds.map(linkId => (
                         <LinkItem
@@ -114,7 +123,7 @@ class Plate extends Component {
     addLink(newLink) {
         this.setState({
             linkIds: [...this.state.linkIds, newLink.id],
-            links: { ...this.state.links, [newLink.id]: newLink }
+            links: { ...this.state.links, [newLink.id]: newLink },
         });
     }
     rmLink(linkId) {
@@ -123,7 +132,23 @@ class Plate extends Component {
 
         this.setState({
             linkIds: this.state.linkIds.filter(_linkId => _linkId !== linkId),
-            links
+            links,
+        });
+    }
+    rmBlock(blockId) {
+        console.log('rmBlock') // IgrEd
+
+        const blocks = { ...this.state.blocks };
+        const links = this.state.links;
+        delete blocks[blockId];
+
+        this.state.linkIds.filter(
+            linkId => links[linkId].startId === blockId || links[linkId].endId === blockId
+        ).forEach(this.rmLink);
+
+        this.setState({
+            blockIds: this.state.blockIds.filter(_blockId => _blockId !== blockId),
+            blocks,
         });
     }
 }
@@ -134,7 +159,7 @@ const plateTarget = {
         const { x: dX = 0, y: dY = 0 } = monitor.getDifferenceFromInitialOffset() || {};
         props.updateBlockPosition(draggedItem.id, {
             top: draggedItem.top + dY,
-            left: draggedItem.left + dX
+            left: draggedItem.left + dX,
         });
     },
     drop(props, monitor, component) {
@@ -142,9 +167,9 @@ const plateTarget = {
         const { x: dX = 0, y: dY = 0 } = monitor.getDifferenceFromInitialOffset() || {};
         props.updateBlockPosition(draggedItem.id, {
             top: draggedItem.top + dY,
-            left: draggedItem.left + dX
+            left: draggedItem.left + dX,
         });
-    }
+    },
 };
 export default Plate;
 
@@ -156,12 +181,12 @@ const DropField = ({ connectDropTarget, ...props }) =>
                 top: 0,
                 right: 0,
                 bottom: 0,
-                left: 0
+                left: 0,
             }}
         />
     );
 const ConnectedDropField = DropTarget(BLOCK_TYPE, plateTarget, (connect, monitor) => ({
     connectDropTarget: connect.dropTarget(),
     canDrop: monitor.canDrop(),
-    isOver: monitor.isOver()
+    isOver: monitor.isOver(),
 }))(DropField);

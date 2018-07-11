@@ -43,22 +43,17 @@ class Link extends PureComponent {
         };
 
         return (
-            <div
+            <LinkItem
                 id={linkItem.id}
                 style={{
-                    position: 'absolute',
-                    height: '1px',
-                    transformOrigin: 0,
-                    background: 'black',
                     top: `${lineParams.top || 0}px`,
                     left: `${lineParams.left || 0}px`,
                     width: `${lineParams.width || 0}px`,
                     transform: `rotate(${lineParams.rotate || 0}rad)`,
-                    zIndex: 5
                 }}
             >
                 <DelButton onClick={this.removeLink(linkItem.id)}>X</DelButton>
-            </div>
+            </LinkItem>
         );
     }
     getCenter = ({ top, left, width, height }) => [+left + width / 2, +top + height / 2];
