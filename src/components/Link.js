@@ -1,16 +1,25 @@
 import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
+
+import {LinkIdType, LinkItemType, BlockItemType} from "./Types";
 
 const LinkItem = styled('div')`
     position: absolute;
     height: 1px;
-    transform-origin: 0;
-    background: black;
+    transform-origin: 0 50%;
+    background: ${({color})=>color || 'black'};
     top: ${({ top }) => top || 0}px;
     left: ${({ left }) => left || 0}px;
     width: ${({ width }) => width || 0}px;
     transform: rotate(${({ rotate }) => rotate || 0}rad);
     z-index: 5;
+    animation: growing 0.5s ease-out;
+
+    @keyframes growing {
+        0% { width: 0; }
+        100% { width: ${({ width }) => width}px; }
+    }
 `;
 
 const DelButton = styled('div')`
@@ -31,7 +40,7 @@ class Link extends PureComponent {
         this.props.rmLinks(this.props.linkId);
     }
     render() {
-        const { start, end, linkItem, linkId } = this.props;
+        const { start, end, linkId } = this.props;
 
         const line = this.calcLine(this.getCenter(start), this.getCenter(end));
 
@@ -81,6 +90,14 @@ class Link extends PureComponent {
         };
     };
 }
-Link.propTypes = {};
+
+Link.propTypes = {
+    linkId: LinkIdType, // link id
+    linkItem: LinkItemType, //link data object
+    start: BlockItemType, //start block data
+    end: BlockItemType, // end block data
+
+    rmLinks: PropTypes.func,
+};
 
 export default Link;

@@ -1,9 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { DragSource, DropTarget } from 'react-dnd';
+import { DragSource } from 'react-dnd';
 
 import { BLOCK_TYPE } from './constants';
+import {BlockIdType, BlockItemType} from "./Types";
 
 const DelBtn = styled('span')`
     position: absolute;
@@ -37,13 +38,13 @@ class Block extends PureComponent {
     }
     deleteBlock(e) {
         e.stopPropagation();
-        this.props.rmBlock(this.props.id);
+        this.props.rmBlock(this.props.blockId);
     }
     blockLink() {
-        this.props.linkIt(this.props.id);
+        this.props.linkIt(this.props.blockId);
     }
     calcDeletePosition() {
-        const r = this.props.width / 2;
+        const r = this.props.blockItem.width / 2;
         const width = 10;
         let delta;
         delta = r * (1 - Math.cos(Math.PI / 4));
@@ -56,14 +57,14 @@ class Block extends PureComponent {
         };
     }
     render() {
-        const { connectDragSource, isDragging, ...props } = this.props;
+        const { connectDragSource, blockItem } = this.props;
         return (
             <BlockItem
                 style={{
-                    width: `${props.width || 50}px`,
-                    height: `${props.height || 50}px`,
-                    top: `${props.top || 0}px`,
-                    left: `${props.left || 0}px`,
+                    width: `${blockItem.width || 50}px`,
+                    height: `${blockItem.height || 50}px`,
+                    top: `${blockItem.top || 0}px`,
+                    left: `${blockItem.left || 0}px`,
                 }}
                 onClick={this.blockLink}
             >
@@ -92,16 +93,17 @@ class Block extends PureComponent {
 Block.propTypes = {
     connectDragSource: PropTypes.func.isRequired,
     isDragging: PropTypes.bool.isRequired,
+
+    blockId: BlockIdType,
+    blockItem: BlockItemType,
+    linkIt: PropTypes.func,
+    rmBlock: PropTypes.func
 };
 
 const blockSource = {
-    beginDrag(props, monitor, component) {
-        const { id, top, left } = props;
-        return {
-            id,
-            top,
-            left,
-        };
+    beginDrag(props) {
+        const { id, top, left } = props.blockItem;
+        return { id, top, left };
     },
 };
 

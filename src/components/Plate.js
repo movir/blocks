@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import { findDOMNode } from 'react-dom';
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import DragDropPlace from './drag-n-drop';
-import { DragSource, DropTarget } from 'react-dnd';
+import { DropTarget } from 'react-dnd';
 
 import BlockItem from './Block';
 import LinkItem from './Link';
@@ -51,8 +49,6 @@ class Plate extends Component {
         }
     }
     clearLinking(event) {
-        event && event.keyCode === 27 && console.log('\t', 'clear by Esc');
-
         if (!event || event.keyCode === 27) {
             this.linking = null;
             document.removeEventListener('keydown', this.clearLinking, false);
@@ -85,15 +81,13 @@ class Plate extends Component {
     }
     render() {
         const { blockIds, blocks, linkIds, links } = this.state;
-        console.log('Plate Render', this.state); // IgrEd
-
         return (
             <DragDropPlace>
                 <PlateArea>
                     {blockIds.map(blockId => (
                         <BlockItem
-                            {...blocks[blockId]}
                             key={blockId}
+                            blockItem={blocks[blockId]}
                             blockId={blockId}
                             linkIt={this.linkIt}
                             rmBlock={this.rmBlock}
@@ -115,8 +109,6 @@ class Plate extends Component {
         );
     }
     updateBlockPosition(id, positionParams) {
-        console.log('updaProp', id, positionParams) // IgrEd
-
         const blocks = this.state.blocks;
         const block = { ...blocks[id], ...positionParams };
 
@@ -153,7 +145,7 @@ class Plate extends Component {
 }
 
 const plateTarget = {
-    hover(props, monitor, component) {
+    hover(props, monitor) {
         const draggedItem = monitor.getItem();
         const { x: dX = 0, y: dY = 0 } = monitor.getDifferenceFromInitialOffset() || {};
         props.updateBlockPosition(draggedItem.id, {
@@ -161,7 +153,7 @@ const plateTarget = {
             left: draggedItem.left + dX,
         });
     },
-    drop(props, monitor, component) {
+    drop(props, monitor) {
         const draggedItem = monitor.getItem();
         const { x: dX = 0, y: dY = 0 } = monitor.getDifferenceFromInitialOffset() || {};
         props.updateBlockPosition(draggedItem.id, {
@@ -172,7 +164,7 @@ const plateTarget = {
 };
 export default Plate;
 
-const DropField = ({ connectDropTarget, ...props }) =>
+const DropField = ({ connectDropTarget }) =>
     connectDropTarget(
         <div
             style={{
