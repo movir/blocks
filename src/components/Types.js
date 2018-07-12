@@ -14,5 +14,6 @@ export const BlockItemType = PropTypes.shape({
     top: PropTypes.number,
     left: PropTypes.number,
     width: PropTypes.number,
-    height: PropTypes.number
+    height: PropTypes.number,
+    parentBlock: BlockItemType,
 });

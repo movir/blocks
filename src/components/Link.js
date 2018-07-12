@@ -2,13 +2,14 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
-import {LinkIdType, LinkItemType, BlockItemType} from "./Types";
+import { LinkIdType, LinkItemType, BlockItemType } from './Types';
+import { getCenter } from './utils';
 
 const LinkItem = styled('div')`
     position: absolute;
     height: 1px;
     transform-origin: 0 50%;
-    background: ${({color})=>color || 'black'};
+    background: ${({ color }) => color || 'black'};
     top: ${({ top }) => top || 0}px;
     left: ${({ left }) => left || 0}px;
     width: ${({ width }) => width || 0}px;
@@ -17,8 +18,12 @@ const LinkItem = styled('div')`
     animation: growing 0.5s ease-out;
 
     @keyframes growing {
-        0% { width: 0; }
-        100% { width: ${({ width }) => width}px; }
+        0% {
+            width: 0;
+        }
+        100% {
+            width: ${({ width }) => width}px;
+        }
     }
 `;
 
@@ -42,13 +47,13 @@ class Link extends PureComponent {
     render() {
         const { start, end, linkId } = this.props;
 
-        const line = this.calcLine(this.getCenter(start), this.getCenter(end));
+        const line = this.calcLine(getCenter(start), getCenter(end));
 
         const lineParams = {
             top: line.y1,
             left: line.x1,
             width: line.width,
-            rotate: line.angle
+            rotate: line.angle,
         };
 
         return (
@@ -65,7 +70,6 @@ class Link extends PureComponent {
             </LinkItem>
         );
     }
-    getCenter = ({ top, left, width, height }) => [+left + width / 2, +top + height / 2];
 
     calcLine = ([x1, y1], [x2, y2]) => {
         const x = Math.abs(x2 - x1);
@@ -80,14 +84,7 @@ class Link extends PureComponent {
             angle = Math.PI - angle;
         }
 
-        return {
-            x1,
-            y1,
-            x2,
-            y2,
-            width,
-            angle
-        };
+        return { x1, y1, x2, y2, width, angle };
     };
 }
 

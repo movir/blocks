@@ -3,10 +3,13 @@ import styled from 'styled-components';
 import DragDropPlace from './drag-n-drop';
 import { DropTarget } from 'react-dnd';
 
+import { blockIdGen } from './utils';
 import BlockItem from './Block';
 import LinkItem from './Link';
 
 import { BLOCK_TYPE } from './constants';
+
+import { sampleBlocks } from './sampleData';
 
 const PlateArea = styled('div')`
     width: 80%;
@@ -20,16 +23,14 @@ class Plate extends Component {
     constructor() {
         super();
         this.state = {
-            blockIds: ['b1', 'b2', 'b3'],
-            blocks: {
-                b1: { id: 'b1', top: 30, left: 30, width: 50, height: 50 },
-                b2: { id: 'b2', top: 150, left: 460, width: 50, height: 50 },
-                b3: { id: 'b3', top: 200, left: 150, width: 50, height: 50 },
-            },
+            blockIds: [],
+            blocks: {},
             linkIds: [],
             links: {},
             linking: null,
         };
+        //apply sample blocks
+        Object.assign(this.state, sampleBlocks);
 
         this.linking = null;
 
@@ -40,6 +41,7 @@ class Plate extends Component {
         this.rmLinks = this.rmLinks.bind(this);
         this.clearLinking = this.clearLinking.bind(this);
         this.rmBlock = this.rmBlock.bind(this);
+        this.addBlock = this.addBlock.bind(this);
     }
     linkIt(blockId) {
         if (this.linking === null) {
@@ -72,11 +74,7 @@ class Plate extends Component {
         //prevent duplicating
         if (linkIds.find(linkId => linkId === `${startId}-${endId}`)) return this.clearLinking();
 
-        this.addLink({
-            id: `${startId}-${endId}`,
-            startId,
-            endId,
-        });
+        this.addLink(startId, endId);
         this.clearLinking();
     }
     render() {
@@ -91,6 +89,7 @@ class Plate extends Component {
                             blockId={blockId}
                             linkIt={this.linkIt}
                             rmBlock={this.rmBlock}
+                            addBlock={this.addBlock}
                         />
                     ))}
                     {linkIds.map(linkId => (
@@ -114,7 +113,12 @@ class Plate extends Component {
 
         this.setState({ blocks: { ...blocks, [id]: block } });
     }
-    addLink(newLink) {
+    addLink(startId, endId) {
+        const newLink = {
+            id: `${startId}-${endId}`,
+            startId,
+            endId,
+        };
         this.setState({
             linkIds: [...this.state.linkIds, newLink.id],
             links: { ...this.state.links, [newLink.id]: newLink },
@@ -141,6 +145,17 @@ class Plate extends Component {
         this.rmLinks(LinksToBeDelted);
 
         this.setState({ blockIds, blocks });
+    }
+    addBlock(newBlockItem, parentBlock) {
+        const newBlock = { ...newBlockItem, id: blockIdGen(), parentBlock };
+
+        this.setState({
+            blockIds: [...this.state.blockIds, newBlock.id],
+            blocks: { ...this.state.blocks, [newBlock.id]: newBlock },
+        });
+        if (parentBlock) {
+            this.addLink(parentBlock.id, newBlock.id);
+        }
     }
 }
 
