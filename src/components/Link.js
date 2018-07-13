@@ -5,16 +5,15 @@ import styled from 'styled-components';
 import { LinkIdType, LinkItemType, BlockItemType } from './Types';
 import { getCenter } from './utils';
 
-const LinkItem = styled('div')`
+const RegularLinkItem = styled('div')`
     position: absolute;
     height: 1px;
     transform-origin: 0 50%;
     background: ${({ color }) => color || 'black'};
-    top: ${({ top }) => top || 0}px;
-    left: ${({ left }) => left || 0}px;
-    width: ${({ width }) => width || 0}px;
-    transform: rotate(${({ rotate }) => rotate || 0}rad);
     z-index: 5;
+`;
+
+const NewBornLinkItem = RegularLinkItem.extend`
     animation: growing 0.5s ease-out;
 
     @keyframes growing {
@@ -39,6 +38,11 @@ class Link extends PureComponent {
     constructor(props) {
         super(props);
         this.removeLink = this.removeLink.bind(this);
+        this.newBorned = true;
+    }
+
+    componentDidMount() {
+        this.newBorned = false;
     }
 
     removeLink() {
@@ -55,6 +59,7 @@ class Link extends PureComponent {
             width: line.width,
             rotate: line.angle,
         };
+        const LinkItem = this.newBorned ? NewBornLinkItem : RegularLinkItem;
 
         return (
             <LinkItem
@@ -65,6 +70,7 @@ class Link extends PureComponent {
                     width: `${lineParams.width || 0}px`,
                     transform: `rotate(${lineParams.rotate || 0}rad)`,
                 }}
+                width={lineParams.width}
             >
                 <DelButton onClick={this.removeLink}>X</DelButton>
             </LinkItem>

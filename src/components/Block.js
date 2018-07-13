@@ -6,12 +6,12 @@ import { DragSource } from 'react-dnd';
 import { BLOCK_TYPE } from './constants';
 import { BlockIdType, BlockItemType } from './Types';
 
-const DelBtn = styled('span')`
+const SideBtn = styled('span')`
     position: absolute;
     border: 1px solid;
     background: white;
-    font-size: 9px;
-    line-height: 10px;
+    font-size: 14px;
+    line-height: 15px;
     border-radius: 50%;
     display: none;
 `;
@@ -25,7 +25,7 @@ const RegularBlockItem = styled('div')`
     transform-origin: center;
 
     &:hover {
-        & ${DelBtn} {
+        & ${SideBtn} {
             display: block;
         }
     }
@@ -61,7 +61,8 @@ class Block extends PureComponent {
         e.stopPropagation();
         this.props.rmBlock(this.props.blockId);
     }
-    blockLink() {
+    blockLink(e) {
+        e.stopPropagation();
         this.props.linkIt(this.props.blockId);
     }
     componentDidMount() {
@@ -79,19 +80,32 @@ class Block extends PureComponent {
     }
     calcDeleteBtnPosition() {
         const r = this.props.blockItem.width / 2;
-        const width = 10;
+        const diameter = 15;
         let delta;
         delta = r * (1 - Math.cos(Math.PI / 4));
-        delta = delta - width / 2;
+        delta = delta - diameter / 2;
         return {
-            width,
-            height: width,
+            width: diameter,
+            height: diameter,
             top: delta,
             right: delta,
         };
     }
+    calcLinkBtnPosition() {
+        const r = this.props.blockItem.width / 2;
+        const diameter = 15;
+        let delta;
+        delta = r * (1 - Math.cos(Math.PI / 4));
+        delta = delta - diameter / 2;
+        return {
+            width: diameter,
+            height: diameter,
+            top: delta,
+            left: delta,
+        };
+    }
     render() {
-        const { connectDragSource, blockItem } = this.props;
+        const { connectDragSource, blockItem, linking } = this.props;
         const BlockItem = this.newBorned ? newBornBlockItem : RegularBlockItem;
         return (
             <BlockItem
@@ -102,7 +116,6 @@ class Block extends PureComponent {
                     left: `${blockItem.left || 0}px`,
                 }}
                 blockItem={blockItem}
-                onClick={this.blockLink}
             >
                 <div
                     style={{
@@ -122,9 +135,12 @@ class Block extends PureComponent {
                         </span>
                     )}
                 </div>
-                <DelBtn style={this.calcDeleteBtnPosition()} onClick={this.deleteBlock}>
-                    x
-                </DelBtn>
+                <SideBtn style={this.calcDeleteBtnPosition()} onClick={this.deleteBlock}>
+                    ×
+                </SideBtn>
+                <SideBtn style={{...this.calcLinkBtnPosition(), display: linking ? 'block' : ''}} onClick={this.blockLink}>
+                    ∞{/*≈*/}{/*🔗*/}
+                </SideBtn>
             </BlockItem>
         );
     }
@@ -136,6 +152,7 @@ Block.propTypes = {
 
     blockId: BlockIdType,
     blockItem: BlockItemType,
+    linking: PropTypes.bool,
     linkIt: PropTypes.func,
     rmBlock: PropTypes.func,
     addBlock: PropTypes.func,

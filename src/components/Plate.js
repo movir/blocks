@@ -44,28 +44,33 @@ class Plate extends Component {
         this.addBlock = this.addBlock.bind(this);
     }
     linkIt(blockId) {
-        if (this.linking === null) {
+        if (this.state.linking === null) {
             this.startLinking(blockId);
         } else {
             this.endLinking(blockId);
         }
     }
     clearLinking(event) {
-        if (!event || event.keyCode === 27) {
-            this.linking = null;
+        if (!event || event.keyCode === 27 || event.type === 'click') {
+            this.setState({ linking: null });
             document.removeEventListener('keydown', this.clearLinking, false);
+            document.removeEventListener('click', this.clearLinking, false);
         }
     }
     startLinking(blockId) {
         document.addEventListener('keydown', this.clearLinking, false);
-        this.linking = {
-            start: { id: blockId },
-        };
+        document.addEventListener('click', this.clearLinking, false);
+        this.setState({
+            linking: {
+                start: { id: blockId },
+            },
+        });
     }
     endLinking(blockId) {
-        this.linking['end'] = { id: blockId };
+        const {linking} = this.state;
+        linking['end'] = { id: blockId };
 
-        const { start: { id: startId }, end: { id: endId } } = this.linking;
+        const { start: { id: startId }, end: { id: endId } } = linking;
         const { linkIds } = this.state;
 
         //prevent self Linking
@@ -78,7 +83,7 @@ class Plate extends Component {
         this.clearLinking();
     }
     render() {
-        const { blockIds, blocks, linkIds, links } = this.state;
+        const { blockIds, blocks, linkIds, links, linking } = this.state;
         return (
             <DragDropPlace>
                 <PlateArea>
@@ -90,6 +95,7 @@ class Plate extends Component {
                             linkIt={this.linkIt}
                             rmBlock={this.rmBlock}
                             addBlock={this.addBlock}
+                            linking={!!linking}
                         />
                     ))}
                     {linkIds.map(linkId => (
