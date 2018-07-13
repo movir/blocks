@@ -23,10 +23,23 @@ const RegularBlockItem = styled('div')`
     border: 1px solid;
     background: white;
     transform-origin: center;
+    
+    .block-title {
+      display: inline-block;
+    }
+    .draggler {
+      display: none;
+    }
 
     &:hover {
         & ${SideBtn} {
             display: block;
+        }
+        .block-title {
+          display: none;
+        }
+        .draggler {
+          display: inline-block;
         }
     }
 `;
@@ -49,8 +62,8 @@ const newBornBlockItem = RegularBlockItem.extend`
 `;
 
 class Block extends PureComponent {
-    constructor(props) {
-        super(props);
+    constructor() {
+        super();
         this.deleteBlock = this.deleteBlock.bind(this);
         this.blockLink = this.blockLink.bind(this);
         this.createNewBlock = this.createNewBlock.bind(this);
@@ -105,7 +118,7 @@ class Block extends PureComponent {
         };
     }
     render() {
-        const { connectDragSource, blockItem, linking } = this.props;
+        const { connectDragSource, blockItem, blockId, linking } = this.props;
         const BlockItem = this.newBorned ? newBornBlockItem : RegularBlockItem;
         return (
             <BlockItem
@@ -129,8 +142,10 @@ class Block extends PureComponent {
                         justifyContent: 'center',
                     }}
                 >
+                    <span className={'block-title'}>{blockId}</span>
+
                     {connectDragSource(
-                        <span style={{ cursor: 'pointer' }} onClick={this.createNewBlock}>
+                        <span style={{ cursor: 'pointer' }} onClick={this.createNewBlock} className={'draggler'}>
                             {`➕`}{/*☰*/}
                         </span>
                     )}

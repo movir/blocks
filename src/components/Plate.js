@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import styled from 'styled-components';
 import DragDropPlace from './drag-n-drop';
 import { DropTarget } from 'react-dnd';
@@ -67,7 +67,7 @@ class Plate extends Component {
         });
     }
     endLinking(blockId) {
-        const {linking} = this.state;
+        const { linking } = this.state;
         linking['end'] = { id: blockId };
 
         const { start: { id: startId }, end: { id: endId } } = linking;
@@ -85,32 +85,35 @@ class Plate extends Component {
     render() {
         const { blockIds, blocks, linkIds, links, linking } = this.state;
         return (
-            <DragDropPlace>
-                <PlateArea>
-                    {blockIds.map(blockId => (
-                        <BlockItem
-                            key={blockId}
-                            blockItem={blocks[blockId]}
-                            blockId={blockId}
-                            linkIt={this.linkIt}
-                            rmBlock={this.rmBlock}
-                            addBlock={this.addBlock}
-                            linking={!!linking}
-                        />
-                    ))}
-                    {linkIds.map(linkId => (
-                        <LinkItem
-                            key={linkId}
-                            linkId={linkId}
-                            linkItem={links[linkId]}
-                            start={blocks[links[linkId].startId]}
-                            end={blocks[links[linkId].endId]}
-                            rmLinks={this.rmLinks}
-                        />
-                    ))}
-                    <ConnectedDropField updateBlockPosition={this.updateBlockPosition} />
-                </PlateArea>
-            </DragDropPlace>
+            <Fragment>
+                <DragDropPlace>
+                    <PlateArea>
+                        {blockIds.map(blockId => (
+                            <BlockItem
+                                key={blockId}
+                                blockItem={blocks[blockId]}
+                                blockId={blockId}
+                                linkIt={this.linkIt}
+                                rmBlock={this.rmBlock}
+                                addBlock={this.addBlock}
+                                linking={!!linking}
+                            />
+                        ))}
+                        {linkIds.map(linkId => (
+                            <LinkItem
+                                key={linkId}
+                                linkId={linkId}
+                                linkItem={links[linkId]}
+                                start={blocks[links[linkId].startId]}
+                                end={blocks[links[linkId].endId]}
+                                rmLinks={this.rmLinks}
+                            />
+                        ))}
+                        <ConnectedDropField updateBlockPosition={this.updateBlockPosition} />
+                        <div id={"config-pop-up"} />
+                    </PlateArea>
+                </DragDropPlace>
+            </Fragment>
         );
     }
     updateBlockPosition(id, positionParams) {
